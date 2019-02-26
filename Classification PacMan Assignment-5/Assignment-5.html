@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><title>Pooyan Fazli: Teaching</title><meta name="Description" content="CSC 665: Artificial Intelligence">
+<link rel="stylesheet" type="text/css" href="pooyan.css">
+<link rel="stylesheet" href="project.css" type="text/css" charset="utf-8">
+
+
+<style><script type="text/javascript" src="pooyan.js"></script>
+
+</style>
+
+</head>
+
+<body>
+
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<div id="header">
+
+
+<div id="main">
+
+<div id="content">
+
+<div class="project">
+
+<h3 class="project_title">CSC 665 - Assignment 5: Classification</h3>
+
+
+
+<b>Acknowledgements</b>: This tutorial is based closely on the one created by Dan Klein and John DeNero at UC Berkeley.
+
+
+<hr/>
+<h3>Table of Contents</h3>
+      <ul>
+        <li><a href="#Introduction">Introduction</a></li>
+        <li><a href="#Q1">Q1: Perceptron</a></li>
+        <li><a href="#Q2">Q2: Perceptron Analysis</a></li>
+        <li><a href="#Q3">Q3: MIRA</a></li>
+        <li><a href="#Q4">Q4: Digit Feature Design</a></li>
+        <li><a href="#Q5">Q5: Behavioral Cloning</a></li>
+        <li><a href="#Q6">Q6: Pacman Feature Design</a></li>
+        <li><a href="#Submission">Submission</a></li>
+      </ul>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <center><table border="0">
+        <tbody>
+          <tr>
+            <td><img alt="" src="images/img2.gif" /><br /> Which Digit?</td>
+            <td><img alt="" src="images/pacman_multi_agent.png" height="223" width="404" /><br />Which action?</td>
+          </tr>
+        </tbody>
+      </table></center>
+      <h3><a name="Introduction"></a>Introduction</h3>
+      <p>In this project, you will design three classifiers: a perceptron classifier, a large-margin (MIRA) classifier, and a slightly modified perceptron classifier for behavioral cloning. You will test the first two classifiers on a set of scanned handwritten digit images, and the last on sets of recorded pacman games from various agents. Even with simple features, your classifiers will be able to do quite well on these tasks when given enough training data.</p>
+      <p>Optical character recognition (<a href="http://en.wikipedia.org/wiki/Optical_character_recognition">OCR</a>) is the task of extracting text from image sources. The data set on which you will run your classifiers is a collection of handwritten numerical digits (0-9). This is a very commercially useful technology, similar to the technique used by the US post office to route mail by zip codes. There are systems that can perform with over 99% classification accuracy (see <a href="http://yann.lecun.com/exdb/lenet/index.html">LeNet-5</a> for an example system in action).</p>
+      <p>Behavioral cloning is the task of learning to copy a behavior simply by observing examples of that behavior. In this project, you will be using this idea to mimic various pacman agents by using recorded games as training examples. Your agent will then run the classifier at each action in order to try and determine which action would be taken by the observed agent.</p>
+      <p>The code for this project includes the following files and data, available as a <a href="classification.zip">zip file</a>.</p>
+      <table class="intro" border="0" cellpadding="10">
+        <tbody>
+          <tr>
+            <td colspan="2"><b>Data file</b></td>
+          </tr>
+          <tr>
+            <td><a href="data.zip"><code>data.zip</code></a></td>
+            <td>Data file, including the digit and face data.</td>
+          </tr>
+          <tr>
+            <td colspan="2"><b>Files you will edit</b></td>
+          </tr>
+          <tr>
+            <td><code><a href="perceptron_pacman.py">perceptron_pacman.py</a></code></td>
+            <td>The location where you will write your behavioral cloning perceptron classifier.</td>
+          </tr>
+          <tr>
+            <td><code><a href="perceptron.py">perceptron.py</a></code></td>
+            <td>The location where you will write your perceptron classifier.</td>
+          </tr>
+          <tr>
+            <td><code><a href="mira.py">mira.py</a></code></td>
+            <td>The location where you will write your MIRA classifier.</td>
+          </tr>
+          <tr>
+            <td><code><a href="dataClassifier.py">dataClassifier.py</a></code></td>
+            <td>The wrapper code that will call your classifiers. You will also write your enhanced feature extractor here. You will also use this code to analyze the behavior of your classifier.</td>
+          </tr>
+          <!--<tr>
+            <td><code><a href="https://s3-us-west-2.amazonaws.com/cs188websitecontent/projects/release/classification/v1/001/docs/minicontest.html">miniContest.py</a></code></td>
+            <td>If you decide to enter the miniContest, you will want to edit this file to put in your classifier. Entering the minicontest is optional, but the file must be present in your submission.</td>
+          </tr>-->
+          <tr>
+            <td><code><a href="answers.py">answers.py</a></code></td>
+            <td>Answer to Question 2 goes here.</td>
+          </tr>
+          <tr>
+            <td colspan="2"><b>Files you should read but NOT edit</b></td>
+          </tr>
+          <tr>
+            <td><code><a href="classificationMethod.py">classificationMethod.py</a></code></td>
+            <td>Abstract super class for the classifiers you will write. <br />(You <b>should</b> read this file carefully to see how the infrastructure is set up.)</td>
+          </tr>
+          <tr>
+            <td><code><a href="samples.py">samples.py</a></code></td>
+            <td>I/O code to read in the classification data.</td>
+          </tr>
+          <tr>
+            <td><code><a href="util.py">util.py</a></code></td>
+            <td>Code defining some useful tools. You may be familiar with some of these by now, and they will save you a lot of time.</td>
+          </tr>
+          <tr>
+            <td><code><a href="mostFrequent.py">mostFrequent.py</a></code></td>
+            <td>A simple baseline classifier that just labels every instance as the most frequent class.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><strong>Files to Edit and Submit:</strong> You will fill in portions of <code><a href="perceptron.py">perceptron.py</a></code>, <code><a href="mira.py">mira.py</a></code>, <code><a href="answers.py">answers.py</a></code>, <code style="background-color: #ffffff;"><a href="perceptron_pacman.py">perceptron_pacman.py</a></code>, and <code style="font-size: 1em; line-height: 1.6em; background-color: #ffffff;"><a href="dataClassifier.py">dataClassifier.py</a></code> (only) during the assignment, and submit them. You should submit these files with your code and comments. Please <em>do not</em> change the other files in this distribution or submit any of our original files other than this file.</p>
+      <p><strong>Evaluation:</strong> Your code will be autograded for technical correctness. Please <em>do not</em> change the names of any provided functions or classes within the code, or you will wreak havoc on the autograder. However, the correctness of your implementation -- not the autograder's judgements -- will be the final judge of your score. If necessary, we will review and grade assignments individually to ensure that you receive due credit for your work.</p>
+      <p><strong>Academic Dishonesty:</strong> We will be checking your code against other submissions in the class for logical redundancy. If you copy someone else's code and submit it with minor changes, we will know. These cheat detectors are quite hard to fool, so please don't try. We trust you all to submit your own work only; <em>please</em> don't let us down. If you do, we will pursue the strongest consequences available to us.</p>
+      <p><strong>Getting Help:</strong> You are not alone! If you find yourself stuck on something, contact the course staff for help. Office hours and the discussion forum are there for your support; please use them. If you can't make our office hours, let us know and we will schedule more. We want these projects to be rewarding and instructional, not frustrating and demoralizing. But, we don't know when or how to help unless you ask.</p>
+      <p><strong>Discussion:</strong> Please be careful not to post spoilers.</p>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <h3><a name="Q1"></a>Question 1 (4 points): Perceptron</h3>
+      <p>A skeleton implementation of a perceptron classifier is provided for you in <code>perceptron.py</code>. In this part, you will fill in the <code>train</code> function.</p>
+      <p>A perceptron keeps a weight vector \(w^y\) of each class \(y\) ( \(y\) is an identifier, not an exponent). Given a feature vector \(f\), the perceptron compute the class \(y\) whose weight vector is most similar to the input vector \(f\). Formally, given a feature vector \(f\) (in our case, a map from pixel locations to indicators of whether they are on), we score each class with:</p>
+      <div><p>\( \mbox{score}(f,y) = \sum\limits_{i} f_i w^y_i \)</p></div>
+      <p>Then we choose the class with highest score as the predicted label for that data instance. In the code, we will represent \(w^y\) as a <code>Counter</code>.</p>
+      <h4>Learning weights</h4>
+      <p>In the basic multi-class perceptron, we scan over the data, one instance at a time. When we come to an instance \((f, y)\), we find the label with highest score:</p>
+      <div><p>\( y' = arg \max\limits_{y''} score(f,y'') \)</p></div>
+      <p>We compare \(y'\) to the true label \(y\). If \(y' = y\), we've gotten the instance correct, and we do nothing. Otherwise, we guessed \(y'\) but we should have guessed \(y\). That means that \(w^y\) should have scored \(f\) higher, and \(w^{y'}\) should have scored \(f\) lower, in order to prevent this error in the future. We update these two weight vectors accordingly:</p>
+      <div><p>\( w^y = w^y + f \)</p></div>
+      <div><p>\( w^{y'} = w^{y'} - f \)</p></div>
+
+      <p>Using the addition, subtraction, and multiplication functionality of the <code>Counter</code> class in <code>util.py</code>, the perceptron updates should be relatively easy to code. Certain implementation issues have been taken care of for you in <code>perceptron.py</code>, such as handling iterations over the training data and ordering the update trials. Furthermore, the code sets up the <code>weights</code> data structure for you. Each legal label needs its own <code>Counter</code> full of weights.</p>
+      <h4>Question</h4>
+      <p>Fill in the <code>train</code> method in <code>perceptron.py</code>. Run your code with:</p>
+      <pre>python dataClassifier.py -c perceptron </pre>
+      <p><strong>Hints and observations:</strong></p>
+      <ul>
+        <li>The command above should yield validation accuracies in the range between 40% to 70% and test accuracy between 40% and 70% (with the default 3 iterations). These ranges are wide because the perceptron is very sensitive to the specific choice of tie-breaking.</li>
+        <li>One of the problems with the perceptron is that its performance is sensitive to several practical details, such as how many iterations you train it for, and the order you use for the training examples (in practice, using a randomized order works better than a fixed order). The current code uses a default value of 3 training iterations. You can change the number of iterations for the perceptron with the <code>-i iterations</code> option. Try different numbers of iterations and see how it influences the performance. In practice, you would use the performance on the validation set to figure out when to stop training, but you don't need to implement this stopping criterion for this assignment.</li>
+      </ul>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <h3><a name="Q2"></a>Question 2 (1 point): Perceptron Analysis</h3>
+      <h4>Visualizing weights</h4>
+      <p>Perceptron classifiers are often criticized because the parameters they learn are hard to interpret. To see a demonstration of this issue, we can write a function to find features that are characteristic of one class. </p>
+      <h4>Question</h4>
+      <p>Fill in <code>findHighWeightFeatures(self, label)</code> in <code>perceptron.py</code>. It should return a list of the 100 features with highest weight for that label. You can display the 100 pixels with the largest weights using the command:</p>
+      <pre>python dataClassifier.py -c perceptron -w  </pre>
+      <p>Use this command to look at the weights, and answer the following question. Which of the following sequence of weights is most representative of the perceptron?</p>
+      <center>
+        <table>
+          <tbody>
+            <tr>
+               <td><img alt="" src="images/q4_choices.png" height="400" width="700" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </center>
+      <p>Answer the question <code>answers.py</code> in the method <code>q2</code>, returning either 'a' or 'b'.</p>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <h3><a name="Q3"></a>Question 3 (6 points): MIRA</h3>
+      <p>A skeleton implementation of the MIRA classifier is provided for you in <code>mira.py</code>. MIRA is an online learner which is closely related to both the support vector machine and perceptron classifiers. You will fill in the <code>trainAndTune</code> function.</p>
+      <h4>Theory</h4>
+      <p>Similar to a multi-class perceptron classifier, multi-class MIRA classifier also keeps a weight vector \(w^y\) of each label \(y\). We also scan over the data, one instance at a time. When we come to an instance \((f, y)\), we find the label with highest score:</p>
+      <div><p>\( y' = arg \max\limits_{y''} score(f,y'') \)</p></div>
+      <p>We compare \(y'\) to the true label \(y\). If \(y' = y\), we've gotten the instance correct, and we do nothing. Otherwise, we guessed \(y'\) but we should have guessed \(y\). Unlike the perceptron, we update the weight vectors of these labels with a variable step size:</p>
+      <div><p>\( w^y = w^y + \tau f \)</p></div>
+      <div><p>\( w^{y'} = w^{y'} - \tau f \)</p></div>
+      <p>where \( \tau \geq 0 \) is chosen such that it minimizes</p>
+      <div><p>\( \min\limits_{w'} \frac{1}{2} \sum\limits_{c} ||(w')^c - w^c ||_2^2 \)</p></div>
+      <div><p>subject to the condition that \((w')^y f \geq (w')^{y'} f + 1 \)</p></div>
+      <p><br /> which is equivalent to</p>
+      <div><p>\( \min\limits_{\tau} ||\tau f ||_2^2 \) subject to \( \tau \geq \frac{(w^{y'} - w^y)f + 1}{2 ||f||_2^2} \) and \( \tau \geq 0 \)</p></div>
+      <p>Note that, \(w^{y'}f \geq w^y f \), so the condition \( \tau \geq 0 \) is always true given \( \tau \geq \frac{(w^{y'} - w^y)f + 1}{2 ||f||_2^2} \) Solving this simple problem, we then have</p>
+      <div><p>\( \tau = \frac{(w^{y'} - w^y)f + 1}{2||f||_2^2} \)</p></div>
+      <p>However, we would like to cap the maximum possible value of \( \tau \) by a positive constant C, which leads us to</p>
+      <div><p>\( \tau = \min ( C, \frac{(w^{y'} - w^y)f + 1}{2||f||_2^2} ) \)</p></div>
+      <h4>Question</h4>
+      <p>Implement <code>trainAndTune</code> in <code>mira.py</code>. This method should train a MIRA classifier using each value of <em>C</em> in <code>Cgrid</code>. Evaluate accuracy on the held-out validation set for each <em>C</em> and choose the <em>C</em> with the highest validation accuracy. In case of ties, prefer the <em>lowest</em> value of <em>C</em>. Test your MIRA implementation with:</p>
+      <pre>python dataClassifier.py -c mira --autotune </pre>
+      <p><strong>Hints and observations:</strong></p>
+      <ul>
+        <li>Pass through the data <code>self.max_iterations</code> times during training.</li>
+        <li>Store the weights learned using the best value of <em>C</em> at the end in <code>self.weights</code>, so that these weights can be used to test your classifier.</li>
+        <li>To use a fixed value of <em>C=0.001</em>, remove the <code>--autotune</code> option from the command above.</li>
+        <li>Validation and test accuracy when using <code>--autotune</code> should be around the 60's.</li>
+        <li>It might save some debugging time if the +1 term above is implemented as +1.0, due to division truncation of integer arguments. Depending on how you implement this, it may not matter.</li>
+        <li>The same code for returning high odds features in your perceptron implementation should also work for MIRA if you're curious what your classifier is learning.</li>
+      </ul>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <h3><a name="Q4"></a>Question 4 (6 points): Digit Feature Design</h3>
+      <p>Building classifiers is only a small part of getting a good system working for a task. Indeed, the main difference between a good classification system and a bad one is usually not the classifier itself, but rather the quality of the features used. So far, we have used the simplest possible features: the identity of each pixel (being on/off).</p>
+      <p>To increase your classifier's accuracy further, you will need to extract more useful features from the data. The <code>EnhancedFeatureExtractorDigit</code> in <code>dataClassifier.py</code> is your new playground. When analyzing your classifiers' results, you should look at some of your errors and look for characteristics of the input that would give the classifier useful information about the label. You can add code to the <code>analysis</code> function in <code>dataClassifier.py</code> to inspect what your classifier is doing. For instance in the digit data, consider the number of separate, connected regions of white pixels, which varies by digit type. 1, 2, 3, 5, 7 tend to have one contiguous region of white space while the loops in 6, 8, 9 create more. The number of white regions in a 4 depends on the writer. This is an example of a feature that is not directly available to the classifier from the per-pixel information. If your feature extractor adds new features that encode these properties, the classifier will be able exploit them. Note that some features may require non-trivial computation to extract, so write efficient and correct code.</p>
+      <p><em>Note: You will be working with digits, so make sure you are using </em><i>DIGIT_DATUM_WIDTH and </i><i>DIGIT_DATUM_HEIGHT, instead of FACE_DATUM_WIDTH and FACE_DATUM_HEIGHT.</i></p>
+      <h4>Question</h4>
+      <p>Add new binary features for the digit dataset in the <code>EnhancedFeatureExtractorDigit</code> function. Note that you can encode a feature which takes 3 values [1,2,3] by using 3 binary features, of which only one is on at the time, to indicate which of the three possibilities you have. We will test your classifier with the following command:</p>
+      <pre>python dataClassifier.py -d digits -c naiveBayes -f -a -t 1000  </pre>
+      <p>With the basic features (without the <code>-f</code> option), your optimal choice of smoothing parameter should yield 82% on the validation set with a test performance of 78%. You will receive 3 points for implementing new feature(s) which yield any improvement at all. You will receive 3 additional points if your new feature(s) give you a test performance greater than or equal to 84% with the above command.</p>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <h3><a name="Q5"></a>Question 5 (4 points): Behavioral Cloning</h3>
+      <p>You have built two different types of classifiers, a perceptron classifier and mira. You will now use a modified version of perceptron in order to learn from pacman agents. In this question, you will fill in the classify and train methods in <code>perceptron_pacman.py</code>. This code should be similar to the methods you've written in <code>perceptron.py.</code></p>
+      <p>For this application of classifiers, the data will be states, and the labels for a state will be all legal actions possible from that state. Unlike perceptron for digits, all of the labels share a single weight vector w, and the features extracted are a function of both the state and possible label.</p>
+      <p>For each action, calculate the score as follows:</p>
+      <div>
+        <p>\(score(s, \text{a}) = w*f(s,a)\)</p>
+      </div>
+      <p>Then the classifier assigns whichever label receives the highest score:</p>
+      <div>
+        <p>\(a' = arg \max\limits_{a''} score (s,a'')\)</p>
+      </div>
+      <p>Training updates occur in much the same way that they do for the standard classifiers. Instead of modifying two separate weight vectors on each update, the weights for the actual and predicted labels, both updates occur on the shared weights as follows:</p>
+      <div>
+        <p>\(w= w+ f(s,a)\) # Correct action</p>
+        <p>\(w= w- f(s,a')\) # Guessed action</p>
+      </div>
+      <h4>Question</h4>
+      <p>Fill in the  <code>train</code> method in <code>perceptron_pacman.py</code>. Run your code with:</p>
+      <p><code>python dataClassifier.py -c perceptron -d pacman</code></p>
+      <p>This command should yield validation and test accuracy of over 70%.</p>
+    </div>
+
+    <hr/>
+
+    <div class="project">
+      <h3><a name="Q6"></a>Question 6 (4 points): Pacman Feature Design</h3>
+      <p>In this part you will write your own features in order to allow the classifier agent to clone the behavior of observed agents. We have provided several agents for you to try to copy behavior from:</p>
+      <ul>
+        <li><strong>StopAgent</strong>: An agent that only stops</li>
+        <li><strong>FoodAgent</strong>: An agent that only aims to eat the food, not caring about anything else in the environment.</li>
+        <li><strong>SuicideAgent</strong>: An agent that only moves towards the closest ghost, regardless of whether it is scared or not scared.</li>
+        <li><strong>ContestAgent</strong>: A staff agent from p2 that smartly avoids ghosts, eats power capsules and food.</li>
+      </ul>
+      <p>We've placed files containing multiple recorded games for each agent in the data/pacmandata directory. Each agent has 15 games recorded and saved for training data, and 10 games for both validation and testing.</p>
+      <h4>Question</h4>
+      <p>Add new features for behavioral cloning in the <code>EnhancedPacmanFeatures</code> function in <code>dataClassifier.py</code>. </p>
+      <p>Upon completing your features, you should get at least 90% accuracy on the ContestAgent, and 80% on each of the other 3 provided agents. You can directly test this using the <code>--agentToClone &lt;Agent name&gt;, -g &lt;Agent name&gt;</code> option for dataClassifier.py:</p>
+      <p><code>python dataClassifier.py -c perceptron -d pacman -f -g ContestAgent -t 1000 -s 1000</code></p>
+      <h4>Other helpful options:</h4>
+      <p>We have also provided a new ClassifierAgent, in pacmanAgents.py, for you that uses your implementation of perceptron_pacman. This agent takes in training, and optionally validation, data and performs the training step of the classifier upon initialization. Then each time it makes an action it runs the trained classifier on the state and performs the returned action. You can run this agent with the following command:</p>
+      <p><code>python pacman.py -p ClassifierAgent --agentArgs trainingData=&lt;path to training data&gt;</code></p>
+      <p>You can also use the <code>--agentToClone &lt;Agent Name&gt;</code> option to use one of the four agents specified above to train on:</p>
+      <p><code>python pacman.py -p ClassifierAgent --agentArgs agentToClone=&lt;Agent Name&gt;</code></p>
+      <p><em>Congratulations! You're finished with the CSC 665 projects.</em></p>
+    </div>
+
+    <hr/>
+
+
+
+
+<h3><a name="Submission"></a>Submission</h3>
+
+<p>
+<ul>
+<li><b>What to submit:</b></li>
+    <ul>
+    <li>The files that are required in the assignment's description (<code>perceptron.py</code>, <code>mira.py</code>, <code>answers.py</code>, <code>perceptron_pacman.py</code>, and <code>dataClassifier.py</code>). Please use comments appropriately across your code.</li>
+    <li>A short README.txt file that specifies: </li>
+    <ul>
+    <li>Your name and SFSU ID (and the name and SFSU ID of your partner). </li>
+    <li>A brief description (i.e. a short paragraph) that includes the main ideas of your implementation.</li>
+    <li>How many hours did you spend on this assignment?</li>
+    </ul>
+    </ul>
+<li><b>Place your files in a single folder inside the archive.</b></li>
+<li><b>Submit your assignment on Blackboard as a single archive file (.zip, tar.gz, etc), with the name <code>csc665-classification-lastname-sfsuid</code> </b></li>
+</ul>
+</p>
+
+
+
+
+
+
+
+
+
+<p>&nbsp;</p>
+<p id="footer">Last updated Dec 10, 2018</p>
+</div>
+<p>&nbsp;</p>
+
+
+<div id="selection_bubble" style="position:absolute;	visibility:hidden; padding:15px; color:#333; background:#eee; border-radius:10px; width:300px; z-index:10000"></div>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-72178754-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body><br>
+</html>

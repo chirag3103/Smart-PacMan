@@ -1,0 +1,372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><title>Pooyan Fazli: Teaching</title><meta name="Description" content="CSC 665: Artificial Intelligence">
+<link rel="stylesheet" type="text/css" href="pooyan.css">
+<link rel="stylesheet" href="project.css" type="text/css" charset="utf-8">
+
+
+<style><script type="text/javascript" src="pooyan.js"></script>
+
+</style>
+
+</head>
+
+<body>
+
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<div id="header">
+
+
+
+<div id="main">
+
+<div id="content">
+
+<div class="project">
+
+<h3 class="project_title">CSC 665 - Assignment 4: Bayes Nets</h3>
+
+
+
+<b>Acknowledgements</b>: This tutorial is based closely on the one created by Dan Klein and John DeNero at UC Berkeley.
+<hr/>
+
+
+
+<blockquote><center><img src="images/mystery_pac.png" alt="" type="saveimage" target="[object Object]" preventdefault="function (){r.isDefaultPrevented=n}" stoppropagation="function (){r.isPropagationStopped=n}" stopimmediatepropagation="function (){r.isImmediatePropagationStopped=n}" isdefaultprevented="function t(){return!1}" ispropagationstopped="function t(){return!1}" isimmediatepropagationstopped="function t(){return!1}" width="641" height="371" /></center>
+<p></p>
+<center>Much truth is unseen.<br />How will Pacman become sure?<br />Bayes' Net Inference.</center>
+<p></p>
+</blockquote>
+<h3><a name="Introduction"></a>Introduction</h3>
+<p>In this project, you will implement inference algorithms for Bayes Nets, specifically variable elimination and value-of-perfect-information computations. These inference algorithms will allow you to reason about the existence of invisible pellets and ghosts.</p>
+<p>This project includes an autograder for you to grade your answers on your machine. This can be run on all questions with the command:</p>
+<pre>python autograder.py</pre>
+<p>It can be run for one particular question, such as q4, by:</p>
+<pre>python autograder.py -q q4</pre>
+<p>It can be run for one particular test by commands of the form:</p>
+<pre>python autograder.py -t test_cases/q4/1-simple-eliminate</pre>
+<p>See the autograder tutorial in Project 0 for more information about using the autograder.</p>
+<p>The code for this project contains the following files, available as a <a href="bayesNets.zip" target="[object Object]">zip archive</a>.</p>
+<table class="intro" border="0" cellpadding="10">
+<tbody>
+<tr>
+<td colspan="2"><b>Files you'll edit:</b></td>
+</tr>
+<tr>
+<td><code><a href="factorOperations.py">factorOperations.py</a></code></td>
+<td>Operations on Factors (join, eliminate, normalize).</td>
+</tr>
+<tr>
+<td><code><a href="inference.py" >inference.py</a></code></td>
+<td>Inference algorithms (enumeration, variable elimination, likelihood weighting).</td>
+</tr>
+<tr></tr>
+<tr>
+<td><code><a href="bayesAgents.py" >bayesAgents.py</a></code></td>
+<td>Pacman agents that reason under uncertainty.</td>
+</tr>
+<tr>
+<td colspan="2"><b>Files you should read but NOT edit:</b></td>
+</tr>
+<tr>
+<td><code><a href="bayesNet.py" >bayesNet.py</a></code></td>
+<td>The BayesNet and Factor classes.</td>
+</tr>
+<tr>
+<td colspan="2"><b>Files you can ignore:</b></td>
+</tr>
+<tr>
+<td><code><a href="graphicsDisplay.py" >graphicsDisplay.py</a></code></td>
+<td>Graphics for Pacman</td>
+</tr>
+<tr>
+<td><code><a href="graphicsUtils.py" >graphicsUtils.py</a></code></td>
+<td>Support for Pacman graphics</td>
+</tr>
+<tr>
+<td><code><a href="textDisplay.py" >textDisplay.py</a></code></td>
+<td>ASCII graphics for Pacman</td>
+</tr>
+<tr>
+<td><code><a href="ghostAgents.py" >ghostAgents.py</a></code></td>
+<td>Agents to control ghosts</td>
+</tr>
+<tr>
+<td><code><a href="keyboardAgents.py" >keyboardAgents.py</a></code></td>
+<td>Keyboard interfaces to control Pacman</td>
+</tr>
+<tr>
+<td><code><a href="layout.py" >layout.py</a></code></td>
+<td>Code for reading layout files and storing their contents</td>
+</tr>
+<tr>
+<td><code><a href="autograder.py" >autograder.py</a></code></td>
+<td>Project autograder</td>
+</tr>
+<tr>
+<td><code><a href="testParser.py" >testParser.py</a></code></td>
+<td>Parses autograder test and solution files</td>
+</tr>
+<tr>
+<td><code><a href="testClasses.py" >testClasses.py</a></code></td>
+<td>General autograding test classes</td>
+</tr>
+<tr>
+<td><code>test_cases/</code></td>
+<td>Directory containing the test cases for each question</td>
+</tr>
+<tr>
+<td><code><a href="bayesNets2TestClasses.py" >bayesNets2TestClasses.py</a></code></td>
+<td>Project 4 specific autograding test classes</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+<p><strong>Files to Edit and Submit:</strong> You will fill in portions of <code><a href="factorOperations.py" >factorOperations.py</a></code>, <code><a href="inference.py" >inference.py</a></code>, and <code><a href="bayesAgents.py" >bayesAgents.py</a></code> during the assignment. You should submit these files with your code and comments. Please <em>do not</em> change the other files in this distribution or submit any of our original files other than these files.</p>
+<p><strong>Evaluation:</strong> Your code will be autograded for technical correctness. Please <em>do not</em> change the names of any provided functions or classes within the code, or you will wreak havoc on the autograder. However, the correctness of your implementation -- not the autograder's judgements -- will be the final judge of your score. If necessary, we will review and grade assignments individually to ensure that you receive due credit for your work.</p>
+<p><strong>Academic Dishonesty:</strong> We will be checking your code against other submissions in the class for logical redundancy. If you copy someone else's code and submit it with minor changes, we will know. These cheat detectors are quite hard to fool, so please don't try. We trust you all to submit your own work only; <em>please</em> don't let us down. If you do, we will pursue the strongest consequences available to us.</p>
+<p><strong>Getting Help:</strong> You are not alone! If you find yourself stuck on something, contact the course staff for help. Office hours, section, and the discussion forum are there for your support; please use them. If you can't make our office hours, let us know and we will schedule more. We want these projects to be rewarding and instructional, not frustrating and demoralizing. But, we don't know when or how to help unless you ask.</p>
+<p><strong>Discussion:</strong> Please be careful not to post spoilers.</p>
+</div>
+<p></p>
+ <hr/>
+
+<div class="project">
+<h3><a name="Welcome"></a>Treasure-Hunting Pacman</h3>
+<p>Pacman has entered a world of mystery. Initially, the entire map is invisible. As he explores it, he learns information about neighboring cells. The map contains two houses: a ghost house, which is probably mostly red, and a food house, which is probably mostly blue. Pacman's goal is to enter the food house while avoiding the ghost house.</p>
+<p>Pacman will reason about which house is which based on his observations, and reason about the tradeoff between taking a chance or gathering more evidence. To enable this, you'll implement probabilistic inference using Bayes nets.</p>
+<p>To play for yourself, run:</p>
+<pre>python hunters.py -p KeyboardAgent -r</pre>
+
+</div>
+
+ <hr/>
+
+<div class="project">
+<h3><a name="Bayes Nets and Factors"></a>Bayes Nets and Factors</h3>
+<p>First, take a look at <code>bayesNet.py</code> to see the classes you'll be working with - <code>BayesNet</code> and <code>Factor</code>. You can also run this file to see an example <code>BayesNet</code> and associated <code>Factor</code>s:</p>
+<pre>python bayesNet.py</pre>
+<p>You should look at the <code>printStarterBayesNet</code> function - there are helpful comments that can make your life <em>much</em> easier later on.</p>
+<p>The Bayes' Net created in this function is shown below:</p>
+<img src="images/trafficNet.png" />
+<p>A summary of the terminology is given below:</p>
+<ul>
+<li>Bayes' Net: This is a representation of a probabilistic model as a directed acyclic graph and a set of conditional probability tables, one for each variable, as shown in lecture. The Traffic Bayes' Net above is an example.</li>
+<li>Factor: This stores a table of probabilities, although the sum of the entries in the table is not necessarily \(1\). A factor is of the general form \(P(X_1, ..., X_m, y_1, ..., y_n\ |\ Z_1, ..., Z_p, w_1, ..., w_q)\). Recall that lower case variables have already been assigned. For each possible assignment of values to the \(X_i\) and \(Z_j\) variables, the factor stores a single number. The \( Z_j, w_k \) variables are said to be conditioned while the \( X_i, y_l \) variables are unconditioned.</li>
+<li>Conditional Probability Table (CPT): This is a factor satisfying two properties:<ol>
+<li>Its entries must sum to \(1\) for each assignment of the conditional variables.</li>
+<li>There is exactly one unconditioned variable.</li>
+</ol>The Traffic Bayes' Net stores the following CPTs: \(P(Raining), P(Ballgame), P(Traffic | Ballgame, Raining)\)</li>
+</ul>
+</div>
+
+ <hr/>
+
+<div class="project">
+<h3 style="line-height: 25.6px;">Question 1 (3 points): Bayes Net Structure</h3>
+<p style="line-height: 25.6px;">Implement the <code>constructBayesNet</code> function in <code>bayesAgents.py</code>. It constructs an empty Bayes net with the structure described below. (We'll specify the actual factors in the next question.)</p>
+<p style="line-height: 25.6px;">The treasure hunting world is generated according to the following Bayes net:</p>
+<p style="line-height: 25.6px;"><img src="images/bayesNet.png" alt="" type="saveimage" target="[object Object]" preventdefault="function (){r.isDefaultPrevented=n}" stoppropagation="function (){r.isPropagationStopped=n}" stopimmediatepropagation="function (){r.isImmediatePropagationStopped=n}" isdefaultprevented="function t(){return!1}" ispropagationstopped="function t(){return!1}" isimmediatepropagationstopped="function t(){return!1}" width="650" height="428" /></p>
+<p>Don't worry if this looks complicated! We'll take it step by step. As described in the code for <code>constructBayesNet</code>, we build the empty structure by listing all of the variables, their values, and the edges between them. This figure shows the variables and the edges, but what about their values?<span style="font-family: monospace, serif;"></span></p>
+<ul>
+<li><strong>X positions</strong> determines which house goes on which side of the board. It is either <strong>food-left</strong> or <strong>ghost-left</strong>.</li>
+<li><strong>Y positions</strong> determines how the houses are vertically oriented. It models the vertical positions of both houses simultaneously, and has one of four values: <strong>both-top</strong>, <b>both-bottom</b>, <b>left-top</b>, and <strong>left-bottom</strong>. "left-top" is as the name suggests: the house on the left side of the board is on top, and the house on the right side of the board is on the bottom.</li>
+<li><strong>Food house</strong> and <strong>ghost house</strong> specify the actual positions of the two houses. They are both deterministic functions of "X positions" and "Y positions"</li>
+<li>The <strong>observations</strong> are measurements that Pacman makes while traveling around the board. Note that there are many of these nodes---one for every board position that might be the wall of a house. If there is no house in a given location, the corresponding observation is <b>none</b>; otherwise it is either <strong>red</strong> or <strong>blue</strong>, with the precise distribution of colors depending on the kind of house. </li>
+</ul>
+</div>
+
+ <hr/>
+
+<h3><a name="Q1"></a>Question 2 (3 points): Bayes Net Probabilities</h3>
+
+
+<p>Implement the <code>fillYCPT</code> and <code>fillObsCPT</code> functions in <code style="text-rendering: optimizeLegibility; font-size: inherit; margin: 0px; border: 0px; outline: 0px; font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; line-height: 1.4em; vertical-align: baseline; border-radius: 3px;">bayesAgents.py</code>. These take the Bayes net you constructed in the previous problem, and specify the factors governing the <strong>Y position</strong> and <strong>observation</strong> variables. (We've already filled in the <strong>X position</strong> and <strong>house</strong> factors for you.)</p>
+<p>Here's the structure of the Bayes net again:</p>
+
+<p style="text-rendering: optimizeLegibility; margin-right: 0px; margin-left: 0px; padding: 0px; border: 0px; outline: 0px; font-stretch: inherit; font-size: 16px; line-height: 25.6px; font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; vertical-align: baseline;"><img src="images/bayesNet.png" alt="" type="saveimage" target="[object Object]" preventdefault="function (){r.isDefaultPrevented=n}" stoppropagation="function (){r.isPropagationStopped=n}" stopimmediatepropagation="function (){r.isImmediatePropagationStopped=n}" isdefaultprevented="function t(){return!1}" ispropagationstopped="function t(){return!1}" isimmediatepropagationstopped="function t(){return!1}" width="684" height="451" /></p>
+
+<p>For an example of how to construct factors, look at the implementation of the factor for <strong>X positions</strong> in <code>fillXCPT</code>.</p>
+<p>The <strong>Y positions</strong> are given by values <code>BOTH_TOP</code>, <code>BOTH_BOTTOM</code>, <code>LEFT_TOP</code> and <code>LEFT_BOTTOM</code>. These variables and their associated probabilities, are provided by constants at the top of the file.</p>
+<p>If you're interested, you can look at the computation for <strong>house positions</strong>. All you need to remember is that each house can be in one of four positions: <strong>top-left</strong>,<strong> top-right</strong>,<strong> bottom-left</strong>,<strong> </strong>or <strong>bottom-right</strong>.</p>
+<p><strong>Observations</strong> are more interesting. Every possible observation position is adjacent to a possible center for a house. Pacman might observe that position to contain a <strong>red </strong>wall, a <strong>blue</strong> wall, or <strong>no wall</strong>. These outcomes occur with the following probabilities (again defined in terms of constants at the top of the file):</p>
+
+<ul>
+<li>If the adjacent house center is occupied by neither the ghost house or the food house, an observation is <strong>none</strong> with certainty (probability 1).</li>
+<li>If the adjacent house center is occupied by the <strong>ghost house</strong>, it is red with probability PROB_GHOST_RED and blue otherwise.</li>
+<li>If the adjacent house center is occupied by the <strong>food house</strong>, it is red with probability PROB_FOOD_RED and blue otherwise.</li>
+</ul>
+<p>IMPORTANT NOTE: the structure of the Bayes Net means that the food house and ghost house might be assigned to the same position. This will never occur in practice. But the observation CPT needs to be a proper distribution for every possible set of parents. In this case, you should use the <strong>food house distribution</strong>.</p>
+
+<h4>Hints</h4>
+<p>There are only four entries in the Y position factor, so you can specify each of those by hand. You'll have to be cleverer for the observation variables. You'll find it easiest to first loop over possible house positions, then over possible walls for each house, and finally over assignments to (wall color, ghost house position, food house position) triples. Remember to create a separate factor for <em>every one</em> of the 4*7=28 possible observation positions.</p>
+
+
+ <hr/>
+
+<div class="project">
+<h3><a name="Q1"></a>Question 3 (5 points): Join Factors</h3>
+<p>Implement the <code>joinFactors</code> function in <code>factorOperations.py</code>. It takes in a list of <code>Factor</code>s and returns a new <code>Factor</code> whose probability entries are the product of the corresponding rows of the input <code>Factor</code>s.</p>
+<p><code>joinFactors</code> can be used as the product rule, for example, if we have a factor of the form \(P(X|Y)\) and another factor of the form \(P(Y)\), then joining these factors will yield \(P(X, Y)\). So, <code>joinFactors</code> allows us to incorporate probabilities for conditioned variables (in this case, \(Y\)). However, you should not assume that <code>joinFactors</code> is called on probability tables - it is possible to call <code>joinFactors</code> on <code>Factor</code>s whose rows do not sum to \(1\).</p>
+<p><em><b>Grading</b></em>: To test and debug your code, run</p>
+<pre>python autograder.py -q q1</pre>
+<p>It may be useful to run specific tests during debugging, to see only one set of factors print out. For example, to only run the first test, run:</p>
+<pre>python autograder.py -t test_cases/q3/1-product-rule</pre>
+<p><em><strong>Hints and Observations</strong></em></p>
+<ul>
+<ul>
+<li>Your <code>joinFactors</code> should return a <em>new</em> <code>Factor</code>.</li>
+<li>Here are some examples of what <code>joinFactors</code> can do:
+<ul>
+<li><code>joinFactors</code>(\(P(X | Y)\), \(P(Y)\)) = \(P(X, Y)\)</li>
+<li><code>joinFactors</code>(\(P(V, W | X, Y, Z)\), \(P(X, Y | Z)\)) = \(P(V, W, X, Y | Z)\)</li>
+<li><code>joinFactors</code>(\(P(X | Y, Z)\), \(P(Y)\)) = \(P(X, Y | Z)\)</li>
+<li><code>joinFactors</code>(\(P(V | W)\), \(P(X | Y)\), \(P(Z)\)) = \(P(V, X, Z | W, Y)\)</li>
+</ul>
+For a general <code>joinFactors</code> operation, which variables are unconditioned in the returned <code>Factor</code>? Which variables are conditioned?</li>
+<li><code>Factor</code>s store a <code>variableDomainsDict</code>, which maps each variable to a list of values that it can take on (its domain). A <code>Factor</code> gets its <code>variableDomainsDict</code> from the <code>BayesNet</code> from which it was instantiated. As a result, it contains all the variables of the <code>BayesNet</code>, <em>not</em> only the unconditioned and conditioned variables used in the <code>Factor</code>. For this problem, you may assume that all the input <code>Factor</code>s have come from the same <code>BayesNet</code>, and so their <code>variableDomainsDict</code>s are all the same.</li>
+</ul>
+</ul>
+</div>
+<p></p>
+
+ <hr/>
+
+<div class="project">
+<h3><a name="Q2"></a>Question 4 (4 points): Eliminate</h3>
+<p>Implement the <code>eliminate</code> function in <code>factorOperations.py</code>. It takes a <code>Factor</code> and a variable to eliminate and returns a new <code>Factor</code> that does not contain that variable. This corresponds to summing all of the entries in the <code>Factor</code> which only differ in the value of the variable being eliminated.</p>
+<p><em><b>Grading</b></em>: To test and debug your code, run</p>
+<pre>python autograder.py -q q4</pre>
+<p>It may be useful to run specific tests during debugging, to see only one set of factors print out. For example, to only run the first test, run:</p>
+<pre>python autograder.py -t test_cases/q4/1-simple-eliminate</pre>
+<p><em><strong>Hints and Observations</strong></em></p>
+<ul>
+<li>Your <code>eliminate</code> should return a <em>new</em> <code>Factor</code>.</li>
+<li><code>eliminate</code> can be used to marginalize variables from probability tables. For example:
+<ul>
+<li><code>eliminate</code>(\(P(X, Y | Z)\), \(Y\)) = \(P(X | Z)\)</li>
+<li><code>eliminate</code>(\(P(X, Y | Z)\), \(X\)) = \(P(Y | Z)\)</li>
+</ul>
+For a general <code>eliminate</code> operation, which variables are unconditioned in the returned <code>Factor</code>? Which variables are conditioned?</li>
+<li>Remember that <code>Factor</code>s store the <code>variableDomainsDict</code> of the original <code>BayesNet</code>, and <em>not</em> only the unconditioned and conditioned variables that they use. As a result, the returned <code>Factor</code> should have the same <code>variableDomainsDict</code> as the input <code>Factor</code>.</li>
+</ul>
+</div>
+<p></p>
+
+<hr/>
+
+<div class="project">
+<h3><a name="Q3"></a>Question 5 (4 points): Normalize</h3>
+<p>Implement the <code>normalize</code> function in <code>factorOperations.py</code>. It takes a <code>Factor</code> as input and normalizes it, that is, it scales all of the entries in the <code>Factor</code> such that the sum of the entries in the <code>Factor</code> is \(1\).</p>
+<p><em><b>Grading</b></em>: To test and debug your code, run</p>
+<pre>python autograder.py -q q5</pre>
+<p>It may be useful to run specific tests during debugging, to see only one set of factors print out. For example, to only run the first test, run:</p>
+<pre>python autograder.py -t test_cases/q5/1-preNormalized</pre>
+<p><em><strong>Hints and Observations</strong></em></p>
+<ul>
+<li>Your <code>normalize</code> should return a <em>new</em> <code>Factor</code>.</li>
+<li><code>normalize</code> does not affect probability distributions (since probability distributions must already sum to \(1\)).</li>
+<li>For a general <code>normalize</code> operation, which variables are unconditioned in the returned <code>Factor</code>? Which variables are conditioned? Make sure to read the docstring of <code>normalize</code> for more instructions.</li>
+<li>Remember that <code>Factor</code>s store the <code>variableDomainsDict</code> of the original <code>BayesNet</code>, and <em>not</em> only the unconditioned and conditioned variables that they use. As a result, the returned <code>Factor</code> should have the same <code>variableDomainsDict</code> as the input <code>Factor</code>.</li>
+</ul>
+</div>
+<p></p>
+
+ <hr/>
+
+<div class="project">
+<h3><a name="Q4"></a>Question 6 (4 points): Variable Elimination</h3>
+<p>Implement the <code>inferenceByVariableElimination</code> function in <code>inference.py</code>. It answers a probabilistic query, which is represented using a <code>BayesNet</code>, a list of query variables, and the evidence.</p>
+<p><em><b>Grading</b></em>: To test and debug your code, run</p>
+<pre>python autograder.py -q q6</pre>
+<p>It may be useful to run specific tests during debugging, to see only one set of factors print out. For example, to only run the first test, run:</p>
+<pre>python autograder.py -t test_cases/q6/1-disconnected-eliminate</pre>
+<p><em><strong>Hints and Observations</strong></em></p>
+<ul>
+<li>The algorithm should iterate over hidden variables in elimination order, performing joining over and eliminating that variable, until the only the query and evidence variables remain.</li>
+<li>The sum of the probabilities in your output factor should sum to one (so that it is a true conditional probability, conditioned on the evidence).</li>
+<li>Look at the <code>inferenceByEnumeration</code> function in <code>inference.py</code> for an example on how to use the desired functions. (Reminder: Inference by enumeration first joins over all the variables and then eliminates all the hidden variables. In contrast, variable elimination interleaves join and eliminate by iterating over all the hidden variables and perform a join and eliminate on a single hidden variable before moving on to the next hidden variable.)</li>
+</ul>
+</div>
+
+ <hr/>
+
+<h3>Question 7 (1 points): Marginal Inference</h3>
+<p>Inside <code>bayesAgents.py</code>, use the <code>inferenceByVariableElimination</code> function you just wrote to compute the marginal distribution over positions of the food house, then return the most likely position. This information is used by <strong>Bayesian Pacman</strong>, who wanders around randomly collecting information for a fixed number of timesteps, then heads directly to the house most likely to contain food.</p>
+
+ <hr/>
+
+<h3>Question 8 (Optional) (4 points): Value of Perfect Information</h3>
+<p>Bayesian Pacman spends a lot of time wandering around randomly, even when further exploration doesn't provide any additional value. Can we do something smarter?</p>
+<p>We'll evaluate <strong>VPI Pacman</strong> in a more restricted setting: everything in the world has been observed, except for the colors of one of the houses' walls. VPI Pacman has three choices:</p>
+<ol>
+<li>immediately enter the already-explored house</li>
+<li>immediately enter the hidden house</li>
+<li>explore the outside of the hidden house, and then make a decision about where to go</li>
+</ol>
+<p>You'll implement code to reason about the expected value of each of these actions.</p>
+<p>First look at <code>computeEnterValues</code>. This function computes the expected value of entering the left and right houses. Again, you can use the inference code you already wrote to do all the heavy lifting here. First compute <em>p(foodHouse = topLeft and ghostHouse = topRight | evidence)</em> and <em>p(foodHouse = topRight and ghostHouse = topLeft | evidence)</em>. Then use these two probabilities to compute expected values for rushing left and rushing right.</p>
+<p>Next look at <code>computeExploreValue</code>. This function computes the expected value of exploring all of the hidden cells, and then making a decision. To do this, you'll need to think about all of the things that might happen as a result of your exploration. Maybe you'll find 1 red wall and 6 blue ones; maybe you'll find 2 red walls and 5 blue ones; and so on. We've provided a helper method, <code>getExplorationProbsAndOutcomes</code>, which returns a list of future observations Pacman might make, and the probability of each. To calculate the value of the extra information Pacman will gain, you can use the following formula:</p>
+<p><em>E[value of exploration] = </em><span style="color: #666666; font-family: arial, helvetica; font-size: medium; line-height: 21.28px; background-color: #f9f7f4;">&Sigma;</span><em style="line-height: 25.6px;"> p(new evidence) max_{actions} E[action | old evidence and new evidence]</em></p>
+<p>Note that <em>E[action | evidence]</em> is exactly the quantity computed by <code>computeEnterVals</code>, so to compute the value of exploration, you can call <code>computeEnterValues</code> again with the hypothetical evidence provided by <code>getExplorationProbsAndOutcomes</code>.</p>
+
+<h4>Hints</h4>
+<p>After exploring, Pacman will again need to compute the expected value of entering the left and right houses. Fortunately, you've already written a function to do this! Your solution to <span style="font-family: monospace, serif;">computeExploreValue</span><span style="font-size: 1em;"> can rely on your solution to </span><span style="font-family: monospace, serif;">computeEnterValues</span><span style="font-size: 1em;"> to determine the value of future observations.</span></p>
+
+
+
+<hr/>
+
+<h3><a name="Submission"></a>Submission</h3>
+
+<p>
+<ul>
+<li><b>What to submit:</b></li>
+    <ul>
+    <li>The files that are required in the assignment's description (<code>factorOperations.py</code>, <code>inference.py</code>, and <code>bayesAgents.py</code>). Please use comments appropriately across your code.</li>
+    <li>A short README.txt file that specifies: </li>
+    <ul>
+    <li>Your name and SFSU ID (and the name and SFSU ID of your partner). </li>
+    <li>A brief description (i.e. a short paragraph) that includes the main ideas of your implementation.</li>
+    <li>How many hours did you spend on this assignment?</li>
+    </ul>
+    </ul>
+<li><b>Place your files in a single folder inside the archive.</b></li>
+<li><b>Submit your assignment on Blackboard as a single archive file (.zip, tar.gz, etc), with the name <code>csc665-bayesnet-lastname-sfsuid</code> </b></li>
+</ul>
+</p>
+
+
+
+
+
+
+
+
+
+<p> </p>
+<p id="footer">Last updated November 18, 2018</p>
+</div>
+<p> </p>
+
+
+<div id="selection_bubble" style="position:absolute;	visibility:hidden; padding:15px; color:#333; background:#eee; border-radius:10px; width:300px; z-index:10000"></div>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-72178754-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body><br>
+</html>
