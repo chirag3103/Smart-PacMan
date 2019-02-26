@@ -94,7 +94,7 @@ def depthFirstSearch(problem):
     w = Directions.WEST
     n = Directions.NORTH
     e = Directions.EAST
-    """
+
     #created a frontier Stack for DFS
     #Here the stack acts as a LIFO stack
     neighbourNodes = util.Stack()
@@ -129,24 +129,7 @@ def depthFirstSearch(problem):
     #the list of moves if finally returned
     return moves
     #util.raiseNotDefined()
-    """
-    neighbourNodes = util.Stack()
-    moves = []
-    neighbourNodes.push((problem.getStartState(),moves))
-    seenNodes = set()
-    while not neighbourNodes.isEmpty():
-        poppedNodeState, poppedNodeAction = neighbourNodes.pop()
-        if(poppedNodeState in seenNodes):
-            continue
-        if problem.isGoalState(poppedNodeState):
-            return poppedNodeAction
-        seenNodes.add(poppedNodeState)
-        for state, action, cost in problem.getSuccessors(poppedNodeState):
-            if(state in seenNodes):
-                continue
-            neighbourNodes.push((state, poppedNodeAction+[action]))
-    return moves    
- 
+
 
 
 
